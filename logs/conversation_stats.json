@@ -1,7 +1,7 @@
 {
   "total_conversaciones": 21,
   "total_mensajes": 185,
-  "tiempo_respuesta_promedio": 0.003313494780398761,
+  "tiempo_respuesta_promedio": 0.0032807922607265283,
   "consultas_por_sistema": {
     "APU": 8,
     "MOTOR": 6,
@@ -1682,5 +1682,5 @@
     }
   ],
   "consultas_satisfactorias": 7,
-  "total_encuestas": 13
+  "total_encuestas": 14
 }
