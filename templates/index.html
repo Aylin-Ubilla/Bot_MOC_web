@@ -68,9 +68,41 @@
             height: 40px;
             cursor: pointer;
         }
+        /* Estilos para la barra de navegación */
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .nav-links a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #075e54;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .nav-links a:hover {
+            background-color: #e0e0e0;
+        }
+        .nav-links a.active {
+            background-color: #075e54;
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <!-- Añadir barra de navegación -->
+    <div class="nav-links">
+        <a href="/" class="active">Chat</a> | 
+        <a href="/dashboard">Dashboard</a> | 
+        <a href="/estadisticas">Estadísticas</a>
+    </div>
+
     <h1>Bot de Mantenimiento Aeronáutico</h1>
     <div class="chat-container">
         <div class="chat-header">
@@ -88,6 +120,7 @@
     </div>
 
     <script>
+        // El resto del código JavaScript permanece igual
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
@@ -140,4 +173,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
