@@ -470,7 +470,7 @@ class WhatsAppBot:
             return respuesta
         
         # Detectar sistema, problema y matrícula
-            sistema, problema, matricula = self.detectar_sistema_y_problema(mensaje)
+        sistema, problema, matricula = self.detectar_sistema_y_problema(mensaje)
         
         # Caso especial para "APU no arranca"
         if (sistema == 'APU' and problema == 'NO_ARRANCA') or ('apu' in mensaje_lower and ('no arranca' in mensaje_lower or 'no enciende' in mensaje_lower)):
@@ -500,15 +500,15 @@ class WhatsAppBot:
             
             self.registrar_respuesta(id_usuario, respuesta, tiempo_inicio)
             
-                # Determinar si debemos enviar la encuesta
-                if not self.contexto_actual[id_usuario].get('encuesta_respondida', False):
-                    self.contexto_actual[id_usuario]['en_encuesta'] = True
-                    respuesta += "\n\n¿El problema o tu consulta fue resuelta? Responde Sí o No."
+            # Determinar si debemos enviar la encuesta
+            if not self.contexto_actual[id_usuario].get('encuesta_respondida', False):
+                self.contexto_actual[id_usuario]['en_encuesta'] = True
+                respuesta += "\n\n¿El problema o tu consulta fue resuelta? Responde Sí o No."
             
             return respuesta
-            else:
-                # Si no tenemos la matrícula, pedirla
-                respuesta = "Detecto que el APU no arranca. ¿Podrías indicarme la matrícula de la aeronave?"
+        else:
+            # Si no tenemos la matrícula, pedirla
+            respuesta = "Detecto que el APU no arranca. ¿Podrías indicarme la matrícula de la aeronave?"
             self.registrar_respuesta(id_usuario, respuesta, tiempo_inicio)
             return respuesta
         
@@ -616,7 +616,7 @@ class WhatsAppBot:
             if not contexto.get('encuesta_respondida', False):
                 # Enviar la encuesta solo si no se ha respondido antes
                 return "¿El problema o tu consulta fue resuelta? Responde Sí o No."
-                else:
+            else:
                 # Si ya se respondió, enviar un mensaje de despedida
                 return "Gracias por usar nuestro servicio. ¡Que tengas un buen día!"
         
@@ -634,7 +634,7 @@ class WhatsAppBot:
         matricula = matricula or contexto.get('matricula')
         
         # Actualizar el contexto
-                self.contexto_actual[id_usuario] = contexto
+        self.contexto_actual[id_usuario] = contexto
         
         # Si detectamos sistema y problema pero no matrícula, pedir matrícula
         if sistema and problema and not matricula:
