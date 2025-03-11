@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Bot de Mantenimiento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .dashboard-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .nav-links a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #075e54;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .nav-links a:hover {
+            background-color: #e0e0e0;
+        }
+        .nav-links a.active {
+            background-color: #075e54;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .satisfaction-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .satisfaction-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+        }
+        .low-satisfaction {
+            background-color: #f44336;
+        }
+        .medium-satisfaction {
+            background-color: #ff9800;
+        }
+        .high-satisfaction {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-links">
+            <a href="/">Chat</a> | 
+            <a href="/dashboard" class="active">Dashboard</a> | 
+            <a href="/estadisticas">Estadísticas</a>
+        </div>
+        
+        <h1>Dashboard de Mantenimiento</h1>
+        
+        <div class="dashboard-section">
+            <h2>Resumen de Actividad</h2>
+            <p>Total de consultas: {{ stats.get('total_mensajes', 0) }}</p>
+            <p>Consultas resueltas: {{ stats.get('consultas_satisfactorias', 0) }}</p>
+            <p>Satisfacción general: {{ "%.1f"|format(stats.get('satisfaccion_promedio', 0)) }}%</p>
+            <p>Tiempo de respuesta promedio: {{ "%.2f"|format(stats.get('tiempo_respuesta_promedio', 0)) }} segundos</p>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2>Sistemas más Consultados</h2>
+            <ul>
+            {% for sistema, count in stats.get('consultas_por_sistema', {}).items() %}
+                <li>{{ sistema }}: {{ count }} consultas</li>
+            {% endfor %}
+            </ul>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2>Satisfacción por Sistema</h2>
+            <table>
+                <tr>
+                    <th>Sistema</th>
+                    <th>Consultas</th>
+                    <th>Satisfacción</th>
+                    <th>Nivel</th>
+                </tr>
+                {% for sistema, datos in stats.get('satisfaccion_por_sistema', {}).items() %}
+                <tr>
+                    <td>{{ sistema }}</td>
+                    <td>{{ datos.get('consultas', 0) }}</td>
+                    <td>
+                        {{ "%.1f"|format(datos.get('satisfaccion', 0)) }}%
+                        <div class="satisfaction-bar">
+                            <div class="satisfaction-fill 
+                                {% if datos.get('satisfaccion', 0) < 40 %}low-satisfaction
+                                {% elif datos.get('satisfaccion', 0) < 70 %}medium-satisfaction
+                                {% else %}high-satisfaction{% endif %}" 
+                                style="width: {{ datos.get('satisfaccion', 0) }}%;">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if datos.get('satisfaccion', 0) < 40 %}
+                            <span style="color: #f44336;">Baja</span>
+                        {% elif datos.get('satisfaccion', 0) < 70 %}
+                            <span style="color: #ff9800;">Media</span>
+                        {% else %}
+                            <span style="color: #4CAF50;">Alta</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2>Problemas Frecuentes</h2>
+            <table>
+                <tr>
+                    <th>Problema</th>
+                    <th>Ocurrencias</th>
+                    <th>% del Total</th>
+                </tr>
+                {% for problema, count in stats.get('consultas_por_problema', {}).items() %}
+                <tr>
+                    <td>{{ problema }}</td>
+                    <td>{{ count }}</td>
+                    <td>{{ "%.1f"|format(count / stats.get('total_mensajes', 1) * 100) }}%</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</body>
+</html> 

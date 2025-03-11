@@ -146,6 +146,9 @@ class WhatsAppBot:
         else:
             print("No se encontró la base de conocimiento del manual.")
 
+        # Cargar conversaciones y estadísticas si existen
+        self.cargar_datos()
+
     def cargar_estadisticas(self):
         """Carga las estadísticas desde el archivo JSON"""
         stats_path = os.path.join(self.log_dir, self.stats_file)
@@ -574,6 +577,9 @@ class WhatsAppBot:
             self.contexto_actual[id_usuario]['en_encuesta'] = True
             respuesta += "\n\n¿El problema o tu consulta fue resuelta? Responde Sí o No."
         
+        # Al final del método, después de procesar el mensaje
+        self.guardar_datos()
+        
         return respuesta
     
     def procesar_mensaje_normal(self, mensaje, id_usuario, sistema, problema, matricula):
@@ -683,53 +689,35 @@ class WhatsAppBot:
         })
     
     # Añadir un método para obtener estadísticas
-    def obtener_estadisticas(self, start_date=None, end_date=None):
-        """Devuelve un resumen de las estadísticas, opcionalmente filtrado por fechas"""
-        # Obtener la fecha actual
-        fecha_actual = datetime.now().strftime("%Y-%m-%d")
+    def obtener_estadisticas(self):
+        """Obtiene estadísticas del bot"""
+        # Código existente...
         
-        # Obtener la fecha del primer registro (o usar None si no hay registros)
-        fecha_inicio = None
-        if self.stats["conversaciones"] and len(self.stats["conversaciones"]) > 0:
-            fecha_inicio = self.stats["conversaciones"][0]["fecha"].split()[0]  # Solo la parte de la fecha
+        # Calcular satisfacción por sistema
+        satisfaccion_por_sistema = {}
+        for conv_id, conv in self.conversaciones.items():
+            sistema = conv.get('sistema', 'No especificado')
+            if sistema not in satisfaccion_por_sistema:
+                satisfaccion_por_sistema[sistema] = {
+                    'consultas': 0,
+                    'satisfactorias': 0,
+                    'satisfaccion': 0
+                }
+            
+            satisfaccion_por_sistema[sistema]['consultas'] += 1
+            
+            if conv.get('satisfaccion') == True:
+                satisfaccion_por_sistema[sistema]['satisfactorias'] += 1
         
-        # Si no hay filtros de fecha, devolver todas las estadísticas
-        if not start_date and not end_date:
-            return {
-                "total_conversaciones": self.stats["total_conversaciones"],
-                "total_mensajes": self.stats["total_mensajes"],
-                "tiempo_respuesta_promedio": round(self.stats["tiempo_respuesta_promedio"], 3),
-                "consultas_por_sistema": self.stats["consultas_por_sistema"],
-                "consultas_por_problema": self.stats["consultas_por_problema"],
-                "consultas_urgentes": self.stats["consultas_urgentes"],
-                "derivaciones_agente": self.stats["derivaciones_agente"],
-                "respuestas_automaticas": self.stats["respuestas_automaticas"],
-                "fecha_actual": fecha_actual,
-                "fecha_inicio": fecha_inicio,
-                "start_date": start_date,
-                "end_date": end_date,
-                "consultas_satisfactorias": self.stats["consultas_satisfactorias"],
-                "total_encuestas": self.stats["total_encuestas"]
-            }
+        # Calcular porcentaje de satisfacción por sistema
+        for sistema, datos in satisfaccion_por_sistema.items():
+            if datos['consultas'] > 0:
+                datos['satisfaccion'] = (datos['satisfactorias'] / datos['consultas']) * 100
         
-        # Para simplificar, si hay filtros de fecha pero no tenemos implementada la lógica completa,
-        # devolvemos las estadísticas completas pero incluimos los filtros en la respuesta
-        return {
-            "total_conversaciones": self.stats["total_conversaciones"],
-            "total_mensajes": self.stats["total_mensajes"],
-            "tiempo_respuesta_promedio": round(self.stats["tiempo_respuesta_promedio"], 3),
-            "consultas_por_sistema": self.stats["consultas_por_sistema"],
-            "consultas_por_problema": self.stats["consultas_por_problema"],
-            "consultas_urgentes": self.stats["consultas_urgentes"],
-            "derivaciones_agente": self.stats["derivaciones_agente"],
-            "respuestas_automaticas": self.stats["respuestas_automaticas"],
-            "fecha_actual": fecha_actual,
-            "fecha_inicio": fecha_inicio,
-            "start_date": start_date,
-            "end_date": end_date,
-            "consultas_satisfactorias": self.stats["consultas_satisfactorias"],
-            "total_encuestas": self.stats["total_encuestas"]
-        }
+        # Añadir a las estadísticas
+        self.stats['satisfaccion_por_sistema'] = satisfaccion_por_sistema
+        
+        return self.stats
 
     def mostrar_ayuda(self):
         return """🔍 Bot de Mantenimiento MOC
@@ -1294,3 +1282,36 @@ Comandos disponibles:
         self.contexto_actual[id_usuario] = contexto
         self.registrar_respuesta(id_usuario, mensaje, tiempo_inicio)
         return mensaje
+
+    def guardar_datos(self):
+        """Guarda las conversaciones y estadísticas en archivos JSON"""
+        try:
+            # Crear directorio de datos si no existe
+            if not os.path.exists('data'):
+                os.makedirs('data')
+            
+            # Guardar conversaciones
+            with open('data/conversaciones.json', 'w', encoding='utf-8') as f:
+                json.dump(self.conversaciones, f, ensure_ascii=False, indent=2)
+            
+            # Guardar estadísticas
+            estadisticas = self.obtener_estadisticas()
+            with open('data/estadisticas.json', 'w', encoding='utf-8') as f:
+                json.dump(estadisticas, f, ensure_ascii=False, indent=2)
+            
+            print("Datos guardados correctamente")
+        except Exception as e:
+            print(f"Error al guardar datos: {e}")
+
+    def cargar_datos(self):
+        """Carga las conversaciones desde un archivo JSON"""
+        try:
+            # Cargar conversaciones si existe el archivo
+            if os.path.exists('data/conversaciones.json'):
+                with open('data/conversaciones.json', 'r', encoding='utf-8') as f:
+                    self.conversaciones = json.load(f)
+                print("Conversaciones cargadas correctamente")
+        except Exception as e:
+            print(f"Error al cargar datos: {e}")
+            # Si hay error, inicializar con diccionario vacío
+            self.conversaciones = {}
